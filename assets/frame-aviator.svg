@@ -1,0 +1,19 @@
+<svg viewBox="0 0 520 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#facc15"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="520" height="200" fill="none"/>
+  <!-- bridge -->
+  <path d="M240 80 Q260 60 280 80" fill="none" stroke="url(#g3)" stroke-width="8" stroke-linecap="round"/>
+  <!-- left lens -->
+  <path d="M70 80 Q90 40 150 40 Q220 40 240 80 Q250 120 210 140 Q150 160 100 140 Q60 120 70 80Z"
+        fill="none" stroke="url(#g3)" stroke-width="8"/>
+  <!-- right lens -->
+  <path d="M280 80 Q300 40 360 40 Q430 40 450 80 Q460 120 420 140 Q360 160 310 140 Q270 120 280 80Z"
+        fill="none" stroke="url(#g3)" stroke-width="8"/>
+</svg>
+
+

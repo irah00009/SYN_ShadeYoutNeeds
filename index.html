@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SYN – Shade Your Needs</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top-bar" aria-label="Main navigation">
+      <div class="brand">
+        <span class="brand-name">SYN</span>
+      </div>
+      <nav aria-label="Page sections">
+        <ul class="nav-links">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#how-it-works">How it works</a></li>
+          <li><a href="#frame-hero">Frames</a></li>
+          <li><a href="#try-on">Live try-on</a></li>
+          <li><a href="#footer">Privacy</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <section id="home" class="intro-hero" aria-label="Hero">
+      <div class="intro-copy">
+        <p class="intro-kicker">Virtual try-on</p>
+        <h1 class="intro-title">Find your fit online</h1>
+        <p class="intro-subtitle">
+          Preview frames on your face in real time — right in your browser.
+        </p>
+        <button
+          id="get-started-btn"
+          class="primary-button intro-cta"
+          type="button"
+        >
+          Get started
+        </button>
+      </div>
+    </section>
+
+    <section id="how-it-works" class="how-section" aria-label="How it works">
+      <div class="how-inner">
+        <p class="intro-kicker">How it works</p>
+        <h2 class="how-title">Try on glasses in 3 quick steps</h2>
+        <p class="intro-subtitle">
+          No app, no login — just your camera. See how frames fit before you buy.
+        </p>
+        <ol class="intro-steps">
+          <li><span>1</span>Tap <strong>Get started</strong> to open the camera notice.</li>
+          <li><span>2</span>Align your face in the frame and choose a pair below.</li>
+          <li><span>3</span>Capture a snapshot or share it from your phone.</li>
+        </ol>
+      </div>
+    </section>
+
+    <main class="layout" aria-label="AR try-on experience">
+      <section id="frame-hero" class="frame-hero" aria-label="Featured frame">
+        <div class="frame-hero-inner">
+          <img
+            src="assets/ruby.png"
+            alt="Ruby frame"
+            class="frame-hero-image"
+          />
+          <div class="frame-hero-copy">
+            <h2>Ruby</h2>
+            <p class="frame-hero-price">₱1345</p>
+            <p>A warm everyday frame with a subtle red finish, designed to look natural on camera and in person.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="try-on" class="viewer-section">
+        <div class="viewer-header">
+          <h2>Live try-on</h2>
+          <p class="subtitle">
+            Allow camera access to see how the frames look on you in real time.
+          </p>
+        </div>
+
+        <div class="viewer-wrapper">
+          <div class="video-container" aria-live="polite">
+            <video
+              id="video"
+              autoplay
+              playsinline
+              muted
+              class="video-element"
+            ></video>
+            <img
+              id="photo-preview"
+              alt="Uploaded face preview"
+              class="hidden video-element"
+            />
+            <canvas id="overlay-canvas"></canvas>
+            <div id="camera-overlay" class="camera-overlay-message hidden">
+              <p id="camera-message">
+                Waiting for camera permission…
+              </p>
+              <button id="retry-camera" class="primary-button small hidden">
+                Retry camera
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <section
+          class="products-strip"
+          aria-label="Eyewear frames carousel"
+        >
+          <button
+            class="carousel-nav"
+            id="carousel-prev"
+            aria-label="Previous frames"
+          >
+            ‹
+          </button>
+          <div
+            id="products-carousel"
+            class="products-carousel"
+            tabindex="0"
+          ></div>
+          <button
+            class="carousel-nav"
+            id="carousel-next"
+            aria-label="Next frames"
+          >
+            ›
+          </button>
+        </section>
+      </section>
+
+    </main>
+
+    <footer id="footer" class="site-footer" aria-label="Site footer">
+      <div class="footer-inner">
+        <span class="footer-brand">SYN – Shade Your Needs</span>
+        <span class="footer-note">All face processing happens on your device. No images are uploaded.</span>
+      </div>
+    </footer>
+
+    <div
+      id="consent-modal"
+      class="consent-backdrop hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="consent-title"
+    >
+      <div class="consent-modal">
+        <h2 id="consent-title">Before you continue</h2>
+        <div class="consent-body">
+          <p>
+            You (“You” or “Your”) are about using a virtual try-on solution (the “VTO Service”) and/or its optional pupil distance measurement module (the “PDM Service”) (collectively the “Services”) provided and operated by DITTO TECHNOLOGIES Inc. and/or its affiliates, sister or parent companies (collectively “Ditto”). Your use of the Services is subject to Ditto’s data privacy policy (the “Policy”), WHICH INCLUDES A CLASS-ACTION WAIVER AND A JURY TRIAL WAIVER FOR END-USERS LOCATED IN THE UNITED STATES.
+          </p>
+          <p>
+            By clicking on the “CONTINUE” button, You hereby unconditionally and irrevocably consent to (i) the activation of Your webcam and (ii) the terms of the Policy, in particular related to the collection, process, use and retention of data, including static or recorded images of Your face, and information derived from those data, that may constitute personal or biometric data. If You are located in the United States, by clicking on the “CONTINUE” button, You also unconditionally and irrevocably consent to the class-action waiver and jury trial waiver of Section 8 of the Policy.
+          </p>
+        </div>
+        <div class="consent-actions">
+          <button
+            id="consent-continue"
+            class="primary-button"
+            type="button"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Face detection library: MediaPipe FaceMesh via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js" defer></script>
+  </body>
+</html>
+
+
