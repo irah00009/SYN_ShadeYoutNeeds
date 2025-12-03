@@ -14,59 +14,101 @@ const productsCarouselEl = document.getElementById("products-carousel");
 const carouselPrevBtn = document.getElementById("carousel-prev");
 const carouselNextBtn = document.getElementById("carousel-next");
 
+const framesStripEl = document.getElementById("frames-strip");
+const framesPrevBtn = document.getElementById("frames-prev");
+const framesNextBtn = document.getElementById("frames-next");
+
 const getStartedBtn = document.getElementById("get-started-btn");
 const consentModalEl = document.getElementById("consent-modal");
 const consentContinueBtn = document.getElementById("consent-continue");
 
-// 6+ eyewear options
+// Cart elements
+const cartToggleBtn = document.getElementById("cart-toggle");
+const cartDrawerEl = document.getElementById("cart-drawer");
+const cartBackdropEl = document.getElementById("cart-backdrop");
+const cartCloseBtn = document.getElementById("cart-close");
+const cartItemsEl = document.getElementById("cart-items");
+const cartBadgeEl = document.getElementById("cart-badge");
+const cartTotalAmountEl = document.getElementById("cart-total-amount");
+const checkoutBtn = document.getElementById("checkout-btn");
+
+// Selected frame info elements
+const selectedFrameSection = document.getElementById("selected-frame-info");
+const selectedFrameImage = document.getElementById("selected-frame-image");
+const selectedFrameName = document.getElementById("selected-frame-name");
+const selectedFramePrice = document.getElementById("selected-frame-price");
+const selectedFrameDesc = document.getElementById("selected-frame-desc");
+const addToCartBtn = document.getElementById("add-to-cart-btn");
+
+// Frame modal elements
+const frameModalEl = document.getElementById("frame-modal");
+const frameModalBackdropEl = document.getElementById("frame-modal-backdrop");
+const frameModalCloseBtn = document.getElementById("frame-modal-close");
+const frameModalImgEl = document.getElementById("frame-modal-img");
+const frameModalNameEl = document.getElementById("frame-modal-name");
+const frameModalPriceEl = document.getElementById("frame-modal-price");
+const frameModalDescEl = document.getElementById("frame-modal-desc");
+const frameModalAddCartBtn = document.getElementById("frame-modal-add-cart");
+
+// Toast notification elements
+const toastEl = document.getElementById("toast");
+const toastMessageEl = document.getElementById("toast-message");
+
+// Frame catalogue: Ruby + 4 variants
 const PRODUCTS = [
   {
     id: "ruby",
-    name: "Ruby",
-    price: 1345,
+    name: "SINAG",
+    price: 450,
     overlay: "assets/ruby.png",
     thumb: "assets/ruby.png",
-    description: "Ruby, a warm everyday frame with a subtle red finish that suits most face shapes.",
+    description:
+      "Striking in shape and vivid in tone, Sinag illuminates your look with captivating fiery energy and a gaze full of purpose.",
   },
   {
-    id: "round-tortoise",
-    name: "Round Tortoise",
-    price: 109,
-    overlay: "assets/ruby.png",
-    thumb: "assets/ruby.png",
-    description: "Soft round silhouette with warm tones for a vintage feel.",
+    id: "amethyst",
+    name: "KATALONA",
+    price: 475,
+    overlay: "assets/amethyst-frame.png",
+    thumb: "assets/amethyst-frame.png",
+    description:
+      "Embrace clarity and wisdom with these classic round frames in a striking royal purple. This lightweight design offers a sophisticated look perfect for focus and serenity.",
   },
   {
-    id: "aviator-gold",
-    name: "Aviator Gold",
-    price: 129,
-    overlay: "assets/ruby.png",
-    thumb: "assets/ruby.png",
-    description: "Lightweight metal aviators with a subtle gold sheen.",
+    id: "diamond",
+    name: "AMANIKABLE",
+    price: 500,
+    overlay: "assets/diamond-frame.png",
+    thumb: "assets/diamond-frame.png",
+    description:
+      "These sleek frames offer the calming balance of sea and sky in a vibrant aqua blue. The modern silhouette brings fresh energy and a truly optimistic view to your daily look.",
   },
   {
-    id: "wire-minimal",
-    name: "Wire Minimal",
-    price: 99,
-    overlay: "assets/ruby.png",
-    thumb: "assets/ruby.png",
-    description: "Ultra-thin wire frame that almost disappears on your face.",
+    id: "mercury",
+    name: "MAYARI",
+    price: 425,
+    overlay: "assets/mercury-frame.png",
+    thumb: "assets/mercury-frame.png",
+    description:
+      "Unleash your inner glamour and intuition with the alluring cat-eye shape in polished silver. This elegant design is perfect for the bold personality seeking a touch of mystical confidence.",
   },
   {
-    id: "oversized",
-    name: "Oversized Studio",
-    price: 139,
-    overlay: "assets/ruby.png",
-    thumb: "assets/ruby.png",
-    description: "Bold oversized frame for maximum presence in every room.",
+    id: "silver",
+    name: "SITAN",
+    price: 490,
+    overlay: "assets/Silver-frame.png",
+    thumb: "assets/Silver-frame.png",
+    description:
+      "Designed for strength and authority, the durable matte black finish provides a powerful, professional aesthetic.",
   },
   {
-    id: "cat-eye",
-    name: "Cat-Eye Glow",
-    price: 119,
-    overlay: "assets/ruby.png",
-    thumb: "assets/ruby.png",
-    description: "Playful cat-eye uplift that flatters cheekbones and jawlines.",
+    id: "sun",
+    name: "SARIMANOK",
+    price: 400,
+    overlay: "assets/Sun-frame.png",
+    thumb: "assets/Sun-frame.png",
+    description:
+      "Channel vibrance and spirit with these golden patterned frames inspired by the legendary Sarimanok. Exotic, enchanting, and made for those who move with magic.",
   },
 ];
 
@@ -75,6 +117,11 @@ let currentProduct = PRODUCTS[0];
 let overlayImage = new Image();
 let currentStream = null;
 let facingMode = "user"; // "user" | "environment"
+const FRAME_PAGE_SIZE = 2;
+let framePage = 0;
+
+// Cart state
+let cart = [];
 
 // Last computed transform so we can reuse it for snapshots
 let lastOverlayTransform = null;
@@ -185,9 +232,16 @@ function onFaceResults(results) {
   const eyeDy = ly - ry;
   const eyeDist = Math.sqrt(eyeDx * eyeDx + eyeDy * eyeDy);
 
-  // Slightly narrower but taller frame for better fit
-  const overlayWidth = eyeDist * 2.0;
-  const overlayHeight = eyeDist * 0.9;
+  // Base frame width relative to eye distance
+  const overlayWidth = eyeDist * 2.1;
+
+  // Preserve the actual aspect ratio of the PNG so it doesn't stretch
+  const aspectFromImage =
+    overlayImage && overlayImage.naturalWidth
+      ? overlayImage.naturalHeight / overlayImage.naturalWidth
+      : 0.4; // sensible default if not yet loaded
+
+  const overlayHeight = overlayWidth * aspectFromImage;
 
   const midEyeX = (lx + rx) / 2;
   const midEyeY = (ly + ry) / 2;
@@ -293,6 +347,58 @@ function buildProductsUI() {
   });
 }
 
+function buildFramesHero() {
+  if (!framesStripEl) return;
+  framesStripEl.innerHTML = "";
+
+  PRODUCTS.forEach((product) => {
+    const card = document.createElement("article");
+    card.className = "frame-card-hero";
+
+    const img = document.createElement("img");
+    img.src = product.thumb;
+    img.alt = product.name;
+
+    const name = document.createElement("h3");
+    name.textContent = product.name;
+
+    const price = document.createElement("p");
+    price.className = "frame-card-hero-price";
+    price.textContent = `₱${product.price}`;
+
+    const desc = document.createElement("p");
+    desc.className = "frame-card-hero-desc";
+    desc.textContent = product.description;
+
+    const addToCartBtn = document.createElement("button");
+    addToCartBtn.className = "primary-button add-to-cart-btn";
+    addToCartBtn.textContent = "Add to Cart";
+    addToCartBtn.type = "button";
+    addToCartBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      addToCart(product.id);
+    });
+
+    card.appendChild(img);
+    card.appendChild(name);
+    card.appendChild(price);
+    card.appendChild(desc);
+    card.appendChild(addToCartBtn);
+
+    // Open modal when card is clicked (but not when clicking Add to Cart button)
+    card.addEventListener("click", (e) => {
+      if (e.target === addToCartBtn || addToCartBtn.contains(e.target)) {
+        return;
+      }
+      openFrameModal(product);
+    });
+
+    framesStripEl.appendChild(card);
+  });
+
+  updateFramesHeroVisibility();
+}
+
 function setActiveProduct(productId) {
   const product = PRODUCTS.find((p) => p.id === productId);
   if (!product) return;
@@ -306,6 +412,22 @@ function setActiveProduct(productId) {
   });
 
   loadOverlayImage(product.overlay);
+  showSelectedFrame(product);
+}
+
+function showSelectedFrame(product) {
+  if (!selectedFrameSection || !product) return;
+  
+  selectedFrameImage.src = product.thumb;
+  selectedFrameImage.alt = product.name;
+  selectedFrameName.textContent = product.name;
+  selectedFramePrice.textContent = `₱${product.price}`;
+  selectedFrameDesc.textContent = product.description;
+  
+  selectedFrameSection.classList.remove("hidden");
+  
+  // Scroll to selected frame section
+  selectedFrameSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
 function loadOverlayImage(src) {
@@ -323,8 +445,265 @@ function tinyBounce(el) {
   }, 120);
 }
 
-// Snapshot + share
-// (Snapshot / sharing removed for this streamlined demo UI)
+// Toast notification function
+function showToast(message) {
+  if (!toastEl || !toastMessageEl) return;
+  
+  toastMessageEl.textContent = message;
+  toastEl.classList.remove("hidden");
+  
+  // Animate in
+  setTimeout(() => {
+    toastEl.classList.add("show");
+  }, 10);
+  
+  // Hide after 3 seconds
+  setTimeout(() => {
+    toastEl.classList.remove("show");
+    setTimeout(() => {
+      toastEl.classList.add("hidden");
+    }, 300);
+  }, 3000);
+}
+
+// Cart functions
+function addToCart(productId) {
+  const product = PRODUCTS.find((p) => p.id === productId);
+  if (!product) return;
+  
+  // Check if item already exists in cart
+  const existingItem = cart.find((item) => item.id === productId);
+  
+  if (existingItem) {
+    // Increment quantity if item already exists
+    existingItem.quantity += 1;
+  } else {
+    // Add new item with quantity 1
+    cart.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      thumb: product.thumb,
+      quantity: 1,
+    });
+  }
+  
+  updateCartUI();
+  updateCartBadge();
+  
+  // Show toast notification
+  showToast(`${product.name} is added to cart successfully`);
+  
+  // Show success feedback on button (if exists)
+  if (addToCartBtn) {
+    const originalText = addToCartBtn.textContent;
+    addToCartBtn.textContent = "Added!";
+    addToCartBtn.style.background = "#10b981";
+    setTimeout(() => {
+      addToCartBtn.textContent = originalText;
+      addToCartBtn.style.background = "";
+    }, 1500);
+  }
+}
+
+function updateQuantity(index, change) {
+  if (index < 0 || index >= cart.length) return;
+  
+  const item = cart[index];
+  item.quantity += change;
+  
+  // Remove item if quantity reaches 0
+  if (item.quantity <= 0) {
+    cart.splice(index, 1);
+  }
+  
+  updateCartUI();
+  updateCartBadge();
+}
+
+function removeFromCart(index) {
+  cart.splice(index, 1);
+  updateCartUI();
+  updateCartBadge();
+}
+
+function updateCartUI() {
+  if (!cartItemsEl) return;
+  
+  if (cart.length === 0) {
+    cartItemsEl.innerHTML = '<p class="cart-empty">Your cart is empty</p>';
+    if (checkoutBtn) checkoutBtn.disabled = true;
+    return;
+  }
+  
+  cartItemsEl.innerHTML = "";
+  
+  cart.forEach((item, index) => {
+    const cartItem = document.createElement("div");
+    cartItem.className = "cart-item";
+    
+    const img = document.createElement("img");
+    img.src = item.thumb;
+    img.alt = item.name;
+    img.className = "cart-item-image";
+    
+    const details = document.createElement("div");
+    details.className = "cart-item-details";
+    
+    const name = document.createElement("p");
+    name.className = "cart-item-name";
+    name.textContent = item.name;
+    
+    const price = document.createElement("p");
+    price.className = "cart-item-price";
+    const itemTotal = item.price * item.quantity;
+    price.textContent = `₱${itemTotal.toLocaleString()}`;
+    
+    // Quantity controls
+    const quantityControls = document.createElement("div");
+    quantityControls.className = "cart-item-quantity";
+    
+    const minusBtn = document.createElement("button");
+    minusBtn.className = "quantity-btn quantity-minus";
+    minusBtn.textContent = "−";
+    minusBtn.type = "button";
+    minusBtn.setAttribute("aria-label", "Decrease quantity");
+    minusBtn.addEventListener("click", () => updateQuantity(index, -1));
+    
+    const quantityDisplay = document.createElement("span");
+    quantityDisplay.className = "quantity-value";
+    quantityDisplay.textContent = item.quantity;
+    
+    const plusBtn = document.createElement("button");
+    plusBtn.className = "quantity-btn quantity-plus";
+    plusBtn.textContent = "+";
+    plusBtn.type = "button";
+    plusBtn.setAttribute("aria-label", "Increase quantity");
+    plusBtn.addEventListener("click", () => updateQuantity(index, 1));
+    
+    quantityControls.appendChild(minusBtn);
+    quantityControls.appendChild(quantityDisplay);
+    quantityControls.appendChild(plusBtn);
+    
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "cart-item-remove";
+    removeBtn.textContent = "Remove";
+    removeBtn.type = "button";
+    removeBtn.addEventListener("click", () => removeFromCart(index));
+    
+    details.appendChild(name);
+    details.appendChild(price);
+    details.appendChild(quantityControls);
+    
+    cartItem.appendChild(img);
+    cartItem.appendChild(details);
+    cartItem.appendChild(removeBtn);
+    
+    cartItemsEl.appendChild(cartItem);
+  });
+  
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  if (cartTotalAmountEl) {
+    cartTotalAmountEl.textContent = `₱${total.toLocaleString()}`;
+  }
+  
+  if (checkoutBtn) checkoutBtn.disabled = false;
+}
+
+function updateCartBadge() {
+  if (!cartBadgeEl) return;
+  
+  // Count total items (sum of quantities)
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  if (totalItems > 0) {
+    cartBadgeEl.textContent = totalItems;
+    cartBadgeEl.classList.remove("hidden");
+  } else {
+    cartBadgeEl.classList.add("hidden");
+  }
+}
+
+function openCart() {
+  if (!cartDrawerEl) return;
+  cartDrawerEl.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeCart() {
+  if (!cartDrawerEl) return;
+  cartDrawerEl.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+function handleCheckout() {
+  if (cart.length === 0) return;
+  
+  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const message = `Checkout Summary:\n\n${cart.map((item, i) => `${i + 1}. ${item.name} × ${item.quantity} - ₱${(item.price * item.quantity).toLocaleString()}`).join("\n")}\n\nTotal: ₱${total.toLocaleString()}\n\nThank you for your purchase!`;
+  
+  alert(message);
+  
+  // Clear cart
+  cart = [];
+  updateCartUI();
+  updateCartBadge();
+  closeCart();
+}
+
+// Frame modal functions
+function openFrameModal(product) {
+  if (!frameModalEl || !product) return;
+  
+  frameModalImgEl.src = product.thumb;
+  frameModalImgEl.alt = product.name;
+  frameModalNameEl.textContent = product.name;
+  frameModalPriceEl.textContent = `₱${product.price}`;
+  frameModalDescEl.textContent = product.description;
+  
+  frameModalEl.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  
+  // Store product ID for add to cart
+  frameModalAddCartBtn.dataset.productId = product.id;
+}
+
+function closeFrameModal() {
+  if (!frameModalEl) return;
+  frameModalEl.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+function updateFramesHeroVisibility() {
+  if (!framesStripEl) return;
+  const cards = Array.from(framesStripEl.children);
+  const totalPages = Math.ceil(cards.length / FRAME_PAGE_SIZE);
+  framePage = Math.min(framePage, Math.max(0, totalPages - 1));
+
+  const start = framePage * FRAME_PAGE_SIZE;
+  const end = start + FRAME_PAGE_SIZE;
+
+  cards.forEach((card, index) => {
+    if (index >= start && index < end) {
+      card.style.display = "flex";
+    } else {
+      card.style.display = "none";
+    }
+  });
+
+  const remaining = cards.length - start;
+  if (remaining === 1) {
+    framesStripEl.style.justifyContent = "center";
+  } else {
+    framesStripEl.style.justifyContent = "space-between";
+  }
+
+  if (framesPrevBtn) {
+    framesPrevBtn.disabled = framePage === 0;
+  }
+  if (framesNextBtn) {
+    framesNextBtn.disabled = framePage >= totalPages - 1;
+  }
+}
 
 function openConsentModal() {
   if (!consentModalEl) return;
@@ -345,11 +724,79 @@ function scrollCarousel(direction) {
 // Event wiring
 retryCameraBtn.addEventListener("click", () => startCamera(facingMode));
 
-carouselPrevBtn.addEventListener("click", () => scrollCarousel(-1));
-carouselNextBtn.addEventListener("click", () => scrollCarousel(1));
+// Cart events
+if (cartToggleBtn) {
+  cartToggleBtn.addEventListener("click", openCart);
+}
+
+if (cartCloseBtn) {
+  cartCloseBtn.addEventListener("click", closeCart);
+}
+
+if (cartBackdropEl) {
+  cartBackdropEl.addEventListener("click", closeCart);
+}
+
+if (checkoutBtn) {
+  checkoutBtn.addEventListener("click", handleCheckout);
+}
+
+if (addToCartBtn) {
+  addToCartBtn.addEventListener("click", () => {
+    if (currentProduct) {
+      addToCart(currentProduct.id);
+    }
+  });
+}
+
+// Frame modal events
+if (frameModalCloseBtn) {
+  frameModalCloseBtn.addEventListener("click", closeFrameModal);
+}
+
+if (frameModalBackdropEl) {
+  frameModalBackdropEl.addEventListener("click", closeFrameModal);
+}
+
+if (frameModalAddCartBtn) {
+  frameModalAddCartBtn.addEventListener("click", () => {
+    const productId = frameModalAddCartBtn.dataset.productId;
+    if (productId) {
+      addToCart(productId);
+      closeFrameModal();
+    }
+  });
+}
+
+// Carousel navigation buttons removed - users can scroll horizontally
+if (carouselPrevBtn) {
+  carouselPrevBtn.addEventListener("click", () => scrollCarousel(-1));
+}
+if (carouselNextBtn) {
+  carouselNextBtn.addEventListener("click", () => scrollCarousel(1));
+}
+
+if (framesPrevBtn) {
+  framesPrevBtn.addEventListener("click", () => {
+    framePage = Math.max(0, framePage - 1);
+    updateFramesHeroVisibility();
+  });
+}
+
+if (framesNextBtn) {
+  framesNextBtn.addEventListener("click", () => {
+    framePage += 1;
+    updateFramesHeroVisibility();
+  });
+}
 
 if (getStartedBtn) {
-  getStartedBtn.addEventListener("click", openConsentModal);
+  getStartedBtn.addEventListener("click", () => {
+    const framesSection = document.getElementById("frame-hero");
+    if (framesSection) {
+      framesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
 }
 
 if (consentContinueBtn) {
@@ -371,11 +818,47 @@ if (consentModalEl) {
   });
 }
 
+// Contact form handler
+const contactFormEl = document.getElementById("contact-form");
+if (contactFormEl) {
+  contactFormEl.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const message = document.getElementById("contact-message").value;
+    if (message.trim()) {
+      // In a real application, this would send the message to a server
+      alert("Thank you for your message! We'll get back to you soon.");
+      contactFormEl.reset();
+    }
+  });
+}
+
 // Init
 window.addEventListener("DOMContentLoaded", () => {
   buildProductsUI();
+  buildFramesHero();
   setActiveProduct(PRODUCTS[0].id);
   resizeCanvas();
+  updateCartUI();
+  updateCartBadge();
+  
+  // Automatically request camera permission after a short delay
+  // This allows the page to load first, then requests permission
+  setTimeout(() => {
+    // Only request if user hasn't interacted yet (browsers require user interaction)
+    // We'll trigger it when user scrolls or interacts with the page
+    const requestCameraOnInteraction = () => {
+      startCamera("user");
+      // Remove listeners after first interaction
+      document.removeEventListener("scroll", requestCameraOnInteraction);
+      document.removeEventListener("click", requestCameraOnInteraction);
+      document.removeEventListener("touchstart", requestCameraOnInteraction);
+    };
+    
+    // Request camera on first user interaction
+    document.addEventListener("scroll", requestCameraOnInteraction, { once: true });
+    document.addEventListener("click", requestCameraOnInteraction, { once: true });
+    document.addEventListener("touchstart", requestCameraOnInteraction, { once: true });
+  }, 500);
 });
 
 
