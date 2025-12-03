@@ -54,6 +54,18 @@ const frameModalAddCartBtn = document.getElementById("frame-modal-add-cart");
 const toastEl = document.getElementById("toast");
 const toastMessageEl = document.getElementById("toast-message");
 
+// Checkout modal elements
+const checkoutModalEl = document.getElementById("checkout-modal");
+const checkoutModalBackdropEl = document.getElementById("checkout-modal-backdrop");
+const checkoutModalCloseBtn = document.getElementById("checkout-modal-close");
+const checkoutItemsListEl = document.getElementById("checkout-items-list");
+const checkoutTotalEl = document.getElementById("checkout-total");
+
+// Contact modal elements
+const contactModalEl = document.getElementById("contact-modal");
+const contactModalBackdropEl = document.getElementById("contact-modal-backdrop");
+const contactModalCloseBtn = document.getElementById("contact-modal-close");
+
 // Frame catalogue: Ruby + 4 variants
 const PRODUCTS = [
   {
@@ -533,6 +545,10 @@ function updateCartUI() {
   if (cart.length === 0) {
     cartItemsEl.innerHTML = '<p class="cart-empty">Your cart is empty</p>';
     if (checkoutBtn) checkoutBtn.disabled = true;
+    // Reset total to 0 when cart is empty
+    if (cartTotalAmountEl) {
+      cartTotalAmountEl.textContent = '₱0';
+    }
     return;
   }
   
@@ -638,16 +654,66 @@ function closeCart() {
 function handleCheckout() {
   if (cart.length === 0) return;
   
+  // Store cart data before clearing (for display in modal)
+  const cartCopy = JSON.parse(JSON.stringify(cart));
   const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const message = `Checkout Summary:\n\n${cart.map((item, i) => `${i + 1}. ${item.name} × ${item.quantity} - ₱${(item.price * item.quantity).toLocaleString()}`).join("\n")}\n\nTotal: ₱${total.toLocaleString()}\n\nThank you for your purchase!`;
   
-  alert(message);
+  // Populate checkout modal with cart data
+  if (checkoutItemsListEl) {
+    checkoutItemsListEl.innerHTML = "";
+    
+    cartCopy.forEach((item) => {
+      const itemRow = document.createElement("div");
+      itemRow.className = "checkout-item-row";
+      
+      const itemInfo = document.createElement("div");
+      itemInfo.className = "checkout-item-info";
+      
+      const itemName = document.createElement("p");
+      itemName.className = "checkout-item-name";
+      itemName.textContent = item.name;
+      
+      const itemDetails = document.createElement("p");
+      itemDetails.className = "checkout-item-details";
+      itemDetails.textContent = `Quantity: ${item.quantity}`;
+      
+      const itemPrice = document.createElement("p");
+      itemPrice.className = "checkout-item-price";
+      const itemTotal = item.price * item.quantity;
+      itemPrice.textContent = `₱${itemTotal.toLocaleString()}`;
+      
+      itemInfo.appendChild(itemName);
+      itemInfo.appendChild(itemDetails);
+      itemRow.appendChild(itemInfo);
+      itemRow.appendChild(itemPrice);
+      checkoutItemsListEl.appendChild(itemRow);
+    });
+  }
   
-  // Clear cart
+  if (checkoutTotalEl) {
+    checkoutTotalEl.textContent = `₱${total.toLocaleString()}`;
+  }
+  
+  // Clear cart FIRST (before showing modal)
   cart = [];
   updateCartUI();
   updateCartBadge();
   closeCart();
+  
+  // Then show checkout modal
+  openCheckoutModal();
+}
+
+function openCheckoutModal() {
+  if (!checkoutModalEl) return;
+  checkoutModalEl.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeCheckoutModal() {
+  if (!checkoutModalEl) return;
+  checkoutModalEl.classList.add("hidden");
+  document.body.style.overflow = "";
 }
 
 // Frame modal functions
@@ -741,6 +807,15 @@ if (checkoutBtn) {
   checkoutBtn.addEventListener("click", handleCheckout);
 }
 
+// Checkout modal events
+if (checkoutModalCloseBtn) {
+  checkoutModalCloseBtn.addEventListener("click", closeCheckoutModal);
+}
+
+if (checkoutModalBackdropEl) {
+  checkoutModalBackdropEl.addEventListener("click", closeCheckoutModal);
+}
+
 if (addToCartBtn) {
   addToCartBtn.addEventListener("click", () => {
     if (currentProduct) {
@@ -826,10 +901,31 @@ if (contactFormEl) {
     const message = document.getElementById("contact-message").value;
     if (message.trim()) {
       // In a real application, this would send the message to a server
-      alert("Thank you for your message! We'll get back to you soon.");
       contactFormEl.reset();
+      openContactModal();
     }
   });
+}
+
+function openContactModal() {
+  if (!contactModalEl) return;
+  contactModalEl.classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+
+function closeContactModal() {
+  if (!contactModalEl) return;
+  contactModalEl.classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+// Contact modal events
+if (contactModalCloseBtn) {
+  contactModalCloseBtn.addEventListener("click", closeContactModal);
+}
+
+if (contactModalBackdropEl) {
+  contactModalBackdropEl.addEventListener("click", closeContactModal);
 }
 
 // Init
