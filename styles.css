@@ -378,7 +378,7 @@ body {
   align-items: stretch;
   justify-content: flex-end;
   gap: 1.5rem;
-  background: url('assets/images.jpg') center/cover no-repeat;
+  background: url('/assets/images.jpg') center/cover no-repeat;
   border-radius: 0;
   overflow: hidden;
   min-height: 100vh;
